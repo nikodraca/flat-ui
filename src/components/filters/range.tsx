@@ -49,14 +49,16 @@ export function RangeFilter(props: RangeFilterProps) {
   }, [props.value]);
 
   const filteredHistogramData = filteredData
-    .map(row => row[id])
-    .filter(d => Number.isFinite(d) || d instanceof Date);
+    .map((row) => row[id])
+    .filter((d) => Number.isFinite(d) || d instanceof Date);
 
-  const originalHistogramData = useMemo(() => (
-    originalData
-      .map(row => row[id])
-      .filter(d => Number.isFinite(d) || d instanceof Date)
-  ), [originalData, id]);
+  const originalHistogramData = useMemo(
+    () =>
+      originalData
+        .map((row) => row[id])
+        .filter((d) => Number.isFinite(d) || d instanceof Date),
+    [originalData, id]
+  );
 
   return (
     <HtmlHistogram

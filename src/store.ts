@@ -23,7 +23,7 @@ import isValidDate from 'date-fns/isValid';
 import parseDate from 'date-fns/parse';
 import parseISO from 'date-fns/parseISO';
 
-import { FilterValue, FilterMap, CategoryValue } from './types';
+import { FilterValue, FilterMap, CategoryValue, Range } from './types';
 import { matchSorter } from 'match-sorter';
 import { DateCell } from './components/cells/date';
 import { TimeCell } from './components/cells/time';
@@ -513,17 +513,28 @@ function filterData(
     const filterValue = filters[columnName];
 
     if (typeof filterValue === 'string') {
-      if (cellTypes[columnName] === 'category') {
-        return rows.filter((row) => row[columnName] === filterValue);
-      } else {
-        return matchSorter(rows, filterValue, {
-          keys: [columnName],
-        });
-      }
+      return matchSorter(rows, filterValue, {
+        keys: [columnName],
+      });
     }
 
     if (Array.isArray(filterValue)) {
-      return rows.filter((r) => isBetween(filterValue, r[columnName]));
+      if (cellTypes[columnName] === 'category') {
+        // If array is empty, reset filter
+        if (filterValue.length < 1) {
+          return rows;
+        }
+
+        return rows.filter((row) => {
+          const columnValues = (filterValue as CategoryValue[]).map(
+            ({ value }) => value
+          );
+
+          return columnValues.includes(row[columnName]);
+        });
+      }
+
+      return rows.filter((r) => isBetween(filterValue as Range, r[columnName]));
     }
 
     return rows;
@@ -834,7 +845,9 @@ export const cellTypeMap = {
     filter: CategoryFilter,
     format: (d: string) => d,
     shortFormat: (d: string) => d,
-    parseValueFunction: (d: [string]) => d,
+    parseValueFunction: (d: [string]) => {
+      return d;
+    },
     sortValueType: 'string',
     extraCellHorizontalPadding: 6,
   },
